@@ -12,7 +12,7 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var requestHandler = function(request, response) {
+exports.requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -28,7 +28,8 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-
+  console.log('request.data: ', request)
+  
   // The outgoing status.
   var statusCode = 200;
 
@@ -40,6 +41,16 @@ var requestHandler = function(request, response) {
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
+
+  let body = [];
+  request.on('error', (err) => {
+    console.error(err);
+  }).on('data', (chunk) => {
+    body.push(chunk);
+  }).on('end', () => {
+    body = Buffer.concat(body).toString(); });
+
+  console.log('body: ', body);
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
