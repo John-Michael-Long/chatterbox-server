@@ -14,6 +14,9 @@ this file and include it in basic-server.js so that it actually works.
 var resultObj = {};
 resultObj.results = [];
 
+const fs = require('fs');
+
+
 exports.requestHandler = function(request, response) {
   
   
@@ -41,17 +44,6 @@ exports.requestHandler = function(request, response) {
 
   var headers = defaultCorsHeaders;
 
-  var postHTML = 
-    '<html><head><title>Post Example</title></head>' +
-    '<body>' +
-    '<form method="post">' +
-    'Input 1: <input name="input1"><br>' +
-    'Input 2: <input name="input2"><br>' +
-    '<input type="submit">' +
-    '</form>' +
-    '</body></html>';
-
-  
   // The outgoing status.
 
   // See the note below about CORS headers.
@@ -59,53 +51,98 @@ exports.requestHandler = function(request, response) {
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
+  // other than plain text, like JSON or HTML.  
   headers['Content-Type'] = 'text/plain';
+  
+  var files = {
+    styles: 'styles/styles.css',
+    jquery: 'bower_components/jquery/dist/jquery.js',
+    underscore: 'bower_components/underscore/underscore.js',
+    app: 'scripts/app.js',
+    main: 'scripts/main.js' 
+  };
+  var file; 
+  
+  if (request.url.includes(files.styles)) {
+    file = files.styles;
+  } else if (request.url.includes(files.jquery)) {
+    file = files.jquery;
+  } else if (request.url.includes(files.underscore)) {
+    file = files.underscore;
+  } else if (request.url.includes(files.app)) {
+    file = files.app;
+  } else if (request.url.includes(files.main)) {
+    file = files.main;
+  } 
   
   if (request.url.includes('/test')) {
     headers['Content-Type'] = 'text/html';
     response.writeHead(200, headers);
-    response.end(postHTML);
-  }
-  if (!request.url.includes('/classes/messages')) {
-    response.writeHead(404, headers); 
-    response.end();
-    
-  } else if (request.method === 'GET') {
-    response.writeHead(200, headers); 
-    response.end(JSON.stringify(resultObj));
-    
-  } else if (request.method === 'POST') {
-    
-    let body = [];
-    request.on('error', (err) => {
-      console.error(err);
-
-      response.writeHead(500, headers); 
-      response.end(JSON.stringify(resultObj));
-
-    }).on('data', (chunk) => {
-
-      body.push(chunk);
-
-    }).on('end', () => {
-
-      body = JSON.parse(Buffer.concat(body).toString()); 
-
-
-      response.writeHead(201, headers);
-
-      body.createdAt = request.timeStamp;
-      resultObj.results.push(body);
-      
-      response.end(JSON.stringify(resultObj));
-    });
-
-  } else if (request.method === 'OPTIONS') {
-
+    response.end('<html><head><title>Post Example</title></head>');
+  } else if (request.url === '/' || request.url.includes('username')) {
+    console.log('yes');
+    headers['Content-Type'] = 'text/html';
     response.writeHead(200, headers);
-    response.end();  
+    
+    fs.readFile('../client/index.html', function (err, data) {
+      if (err) { return console.error(err); }
+      var postHTML = data.toString();
+      response.end(postHTML);
+    });
+  } else if (file) {
+    if (file === 'styles/styles.css') {
+      headers['Content-Type'] = 'text/css';
+    } else {
+      headers['Content-Type'] = 'application/json';
+    }
+    response.writeHead(200, headers);
+    fs.readFile('../client/' + file, function (err, data) {
+      if (err) { return console.error(err); }
+      var postHTML = data.toString();
+      response.end(postHTML);
+    });
+  } else if (request.url.includes('/classes/messages')) {
+    
+    if (request.method === 'GET') {
+      response.writeHead(200, headers); 
+      response.end(JSON.stringify(resultObj));  
+    } else if (request.method === 'POST') {
+      
+      let body = [];
+      request.on('error', (err) => {
+        console.error(err);
+
+        response.writeHead(500, headers); 
+        response.end(JSON.stringify(resultObj));
+
+      }).on('data', (chunk) => {
+
+        body.push(chunk);
+
+      }).on('end', () => {
+
+        body = JSON.parse(Buffer.concat(body).toString()); 
+
+
+        response.writeHead(201, headers);
+
+        body.createdAt = request.timeStamp;
+        resultObj.results.push(body);
+        
+        response.end(JSON.stringify(resultObj));
+      });
+
+    } else if (request.method === 'OPTIONS') {
+
+      response.writeHead(200, headers);
+      response.end();  
+    }
+  } else {
+    response.writeHead(404, headers); 
+    console.log('bad stuff: ', request.url);
+    response.end();
   }
+  
   //{"Allow": 'GET, POST, PUT, DELETE, OPTIONS'}
 
   // .writeHead() writes to the request line and headers of the response,
