@@ -1,7 +1,7 @@
 // YOUR CODE HERE:
 var app = {};
 
-app.server = 'http://127.0.0.1:3000/classes/messages'
+app.server = 'http://127.0.0.1:3000/classes/messages';
 app.data = [];
 app.rooms = {};
 app.friends = {};
@@ -72,8 +72,10 @@ app.fetch = function(limit) {
       order: '-createdAt'
       
     },
-    success: function (data) {
+    success: function (dataString) {
       console.log('chatterbox: Message fetched');
+      var data = JSON.parse(dataString);
+      console.log(data);
       app.data = data.results;
       app.clearMessages();
       app.clearUsername();

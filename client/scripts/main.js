@@ -19,6 +19,6 @@
 
 //objectId and time (updatedAt)
 
-$(document).ready(function(){
+$(document).ready(function() {
   app.init();
 });

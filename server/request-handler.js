@@ -11,8 +11,18 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var resultObj = {};
+resultObj.results = [];
 
 exports.requestHandler = function(request, response) {
+  
+  
+  var defaultCorsHeaders = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  };
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -28,61 +38,63 @@ exports.requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-  console.log('request.postdata: ', request._data);
 
   var headers = defaultCorsHeaders;
 
-  console.log('request.postdata: ', request._postData);
-
-
-var postHTML = 
-  '<html><head><title>Post Example</title></head>' +
-  '<body>' +
-  '<form method="post">' +
-  'Input 1: <input name="input1"><br>' +
-  'Input 2: <input name="input2"><br>' +
-  '<input type="submit">' +
-  '</form>' +
-  '</body></html>';
-
-
-  
+  var postHTML = 
+    '<html><head><title>Post Example</title></head>' +
+    '<body>' +
+    '<form method="post">' +
+    'Input 1: <input name="input1"><br>' +
+    'Input 2: <input name="input2"><br>' +
+    '<input type="submit">' +
+    '</form>' +
+    '</body></html>';
 
   
   // The outgoing status.
 
   // See the note below about CORS headers.
   
-
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
   
-if(request.method === 'GET'){
-    var statusCode = 200;
-    response.writeHead(statusCode, headers); 
-    response.end(postHTML);
-  } else if (request.method === 'POST'){
+  if (!request.url.includes('/classes/messages')) {
+    response.writeHead(404, headers); 
+    response.end();
+    
+  } else if (request.method === 'GET') {
+    response.writeHead(200, headers); 
+    response.end(JSON.stringify(resultObj));
+    
+  } else if (request.method === 'POST') {
+    
     let body = [];
     request.on('error', (err) => {
       console.error(err);
     }).on('data', (chunk) => {
       body.push(chunk);
     }).on('end', () => {
-      body = Buffer.concat(body).toString(); 
-      response.writeHead(statusCode, headers);
-      console.log('body: ', body);
+      body = JSON.parse(Buffer.concat(body).toString()); 
+      console.log('body.username: ', body.username);
+
+      response.writeHead(201, headers);
+
+      body.createdAt = request.timeStamp;
+      resultObj.results.push(body);
+      
+      console.log(resultObj.results);
+      response.end(JSON.stringify(resultObj));
     });
 
-  } else if (request.method === 'OPTIONS'){
+  } else if (request.method === 'OPTIONS') {
+    console.log('something');
+    response.writeHead(200, headers);
+    response.end();  
   }
-
-  
-
-  
-
   
 
   // .writeHead() writes to the request line and headers of the response,
@@ -96,7 +108,7 @@ if(request.method === 'GET'){
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end(postHTML);
+  
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -108,10 +120,5 @@ if(request.method === 'GET'){
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 
