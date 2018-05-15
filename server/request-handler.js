@@ -62,6 +62,11 @@ exports.requestHandler = function(request, response) {
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
   
+  if (request.url.includes('/test')) {
+    headers['Content-Type'] = 'text/html';
+    response.writeHead(200, headers);
+    response.end(postHTML);
+  }
   if (!request.url.includes('/classes/messages')) {
     response.writeHead(404, headers); 
     response.end();
@@ -75,27 +80,33 @@ exports.requestHandler = function(request, response) {
     let body = [];
     request.on('error', (err) => {
       console.error(err);
+
+      response.writeHead(500, headers); 
+      response.end(JSON.stringify(resultObj));
+
     }).on('data', (chunk) => {
+
       body.push(chunk);
+
     }).on('end', () => {
+
       body = JSON.parse(Buffer.concat(body).toString()); 
-      console.log('body.username: ', body.username);
+
 
       response.writeHead(201, headers);
 
       body.createdAt = request.timeStamp;
       resultObj.results.push(body);
       
-      console.log(resultObj.results);
       response.end(JSON.stringify(resultObj));
     });
 
   } else if (request.method === 'OPTIONS') {
-    console.log('something');
+
     response.writeHead(200, headers);
     response.end();  
   }
-  
+  //{"Allow": 'GET, POST, PUT, DELETE, OPTIONS'}
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.

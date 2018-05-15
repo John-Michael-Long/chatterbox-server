@@ -36,8 +36,13 @@ describe('Node Server Request Listener Function', function() {
   it('Should send back an object', function() {
     var req = new stubs.request('/classes/messages', 'GET');
     var res = new stubs.response();
+    console.log('request before: ', req);
+    console.log('response before: ', res);
 
     handler.requestHandler(req, res);
+
+    console.log('request after: ', req);
+    console.log('response after: ', JSON.parse(res._data));
 
     var parsedBody = JSON.parse(res._data);
     expect(parsedBody).to.be.an('object');

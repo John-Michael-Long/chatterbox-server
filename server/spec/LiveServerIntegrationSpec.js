@@ -12,6 +12,7 @@ describe('server', function() {
   it('should send back parsable stringified JSON', function(done) {
     request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
       expect(JSON.parse.bind(this, body)).to.not.throw();
+      console.log('DONE!!!!!!!! :', done);
       done();
     });
   });
@@ -69,6 +70,23 @@ describe('server', function() {
   it('Should 404 when asked for a nonexistent endpoint', function(done) {
     request('http://127.0.0.1:3000/arglebargle', function(error, response, body) {
       expect(response.statusCode).to.equal(404);
+      done();
+    });
+  });
+
+  it('Should 200 when doing an OPTION request', function(done) {
+    var requestParams = {method: 'OPTIONS',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+    };
+    request(requestParams, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      done();
+    });
+  });
+  it('Should 200 when doing a GET request to /test', function(done) {
+
+    request('http://127.0.0.1:3000/test', function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
       done();
     });
   });
