@@ -28,33 +28,66 @@ exports.requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-  console.log('request.data: ', request)
+  console.log('request.postdata: ', request._data);
+
+  var headers = defaultCorsHeaders;
+
+  console.log('request.postdata: ', request._postData);
+
+
+var postHTML = 
+  '<html><head><title>Post Example</title></head>' +
+  '<body>' +
+  '<form method="post">' +
+  'Input 1: <input name="input1"><br>' +
+  'Input 2: <input name="input2"><br>' +
+  '<input type="submit">' +
+  '</form>' +
+  '</body></html>';
+
+
+  
+
   
   // The outgoing status.
-  var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+  
 
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
+  
+if(request.method === 'GET'){
+    var statusCode = 200;
+    response.writeHead(statusCode, headers); 
+    response.end(postHTML);
+  } else if (request.method === 'POST'){
+    let body = [];
+    request.on('error', (err) => {
+      console.error(err);
+    }).on('data', (chunk) => {
+      body.push(chunk);
+    }).on('end', () => {
+      body = Buffer.concat(body).toString(); 
+      response.writeHead(statusCode, headers);
+      console.log('body: ', body);
+    });
 
-  let body = [];
-  request.on('error', (err) => {
-    console.error(err);
-  }).on('data', (chunk) => {
-    body.push(chunk);
-  }).on('end', () => {
-    body = Buffer.concat(body).toString(); });
+  } else if (request.method === 'OPTIONS'){
+  }
 
-  console.log('body: ', body);
+  
+
+  
+
+  
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -63,7 +96,7 @@ exports.requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  response.end(postHTML);
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).

@@ -1,7 +1,7 @@
 // YOUR CODE HERE:
 var app = {};
 
-app.server = 'http://127.0.0.1:3000';   /*/chatterbox/classes/messages*/
+app.server = 'http://127.0.0.1:3000/classes/messages'
 app.data = [];
 app.rooms = {};
 app.friends = {};
